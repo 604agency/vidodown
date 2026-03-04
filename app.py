@@ -36,8 +36,7 @@ def download_job(job_id, url, mode):
         }
     else:
         ydl_opts = {
-            "format": "bestvideo+bestaudio/best",
-            "merge_output_format": "mp4",
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
             "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
             "progress_hooks": [progress_hook],
             "quiet": True,
