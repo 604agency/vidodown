@@ -34,9 +34,6 @@ def download_job(job_id, url, mode):
         "quiet": True,
         "no_warnings": True,
     }
-    if cookies_file:
-        base_opts["cookiefile"] = cookies_file
-
     if mode == "audio":
         ydl_opts = {**base_opts,
             "format": "bestaudio/best",
