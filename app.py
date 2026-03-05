@@ -1,8 +1,26 @@
 from flask import Flask, request, jsonify, send_file, render_template_string
-import yt_dlp, os, tempfile, threading, uuid, re
+import yt_dlp, os, tempfile, threading, uuid, re, subprocess, sys
 
 app = Flask(__name__)
 jobs = {}
+
+def ensure_ffmpeg():
+    """Install ffmpeg if not available."""
+    import shutil
+    if shutil.which("ffmpeg"):
+        return shutil.which("ffmpeg")
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", "imageio[ffmpeg]"], 
+                      capture_output=True)
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except:
+        pass
+    return None
+
+FFMPEG_PATH = ensure_ffmpeg()
+
+
 
 def get_cookies_file():
     cookies_content = os.environ.get("COOKIES_CONTENT", "")
@@ -28,16 +46,15 @@ def download_job(job_id, url, mode):
         elif d.get("status") == "finished":
             jobs[job_id]["progress"] = 95
 
-    # Find ffmpeg
     import shutil
-    ffmpeg_path = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
+    ffmpeg_path = FFMPEG_PATH or shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 
     base_opts = {
         "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
         "quiet": True,
         "no_warnings": True,
-        "ffmpeg_location": ffmpeg_path,
+        "ffmpeg_location": FFMPEG_PATH or ffmpeg_path,
     }
     if mode == "audio":
         ydl_opts = {**base_opts,
