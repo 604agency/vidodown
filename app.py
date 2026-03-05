@@ -44,7 +44,7 @@ def download_job(job_id, url, mode):
         }
     else:
         ydl_opts = {**base_opts,
-            "format": "18/22/best",  # 18=360p mp4, 22=720p mp4, no merging needed
+            "format": "best",
         }
 
     try:
