@@ -28,11 +28,16 @@ def download_job(job_id, url, mode):
         elif d.get("status") == "finished":
             jobs[job_id]["progress"] = 95
 
+    # Find ffmpeg
+    import shutil
+    ffmpeg_path = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
+
     base_opts = {
         "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
         "quiet": True,
         "no_warnings": True,
+        "ffmpeg_location": ffmpeg_path,
     }
     if mode == "audio":
         ydl_opts = {**base_opts,
