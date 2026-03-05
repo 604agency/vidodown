@@ -4,9 +4,19 @@ import yt_dlp, os, tempfile, threading, uuid, re
 app = Flask(__name__)
 jobs = {}
 
+def get_cookies_file():
+    cookies_content = os.environ.get("COOKIES_CONTENT", "")
+    if cookies_content:
+        tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
+        tmp.write(cookies_content)
+        tmp.close()
+        return tmp.name
+    return None
+
 def download_job(job_id, url, mode):
     jobs[job_id] = {"status": "downloading", "progress": 0, "filename": None, "error": None, "display_name": None}
     tmpdir = tempfile.mkdtemp()
+    cookies_file = get_cookies_file()
 
     def progress_hook(d):
         if d.get("status") == "downloading":
@@ -18,22 +28,23 @@ def download_job(job_id, url, mode):
         elif d.get("status") == "finished":
             jobs[job_id]["progress"] = 95
 
+    base_opts = {
+        "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
+        "progress_hooks": [progress_hook],
+        "quiet": True,
+        "no_warnings": True,
+    }
+    if cookies_file:
+        base_opts["cookiefile"] = cookies_file
+
     if mode == "audio":
-        ydl_opts = {
+        ydl_opts = {**base_opts,
             "format": "bestaudio/best",
             "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}],
-            "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
-            "progress_hooks": [progress_hook],
-            "quiet": True,
-            "no_warnings": True,
         }
     else:
-        ydl_opts = {
+        ydl_opts = {**base_opts,
             "format": "best[ext=mp4]/best",
-            "outtmpl": os.path.join(tmpdir, "%(title)s.%(ext)s"),
-            "progress_hooks": [progress_hook],
-            "quiet": True,
-            "no_warnings": True,
         }
 
     try:
