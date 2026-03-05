@@ -44,7 +44,7 @@ def download_job(job_id, url, mode):
         }
     else:
         ydl_opts = {**base_opts,
-            "format": "best[ext=mp4]/best",
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
         }
 
     try:
